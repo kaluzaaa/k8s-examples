@@ -10,3 +10,8 @@ Login:
 - `az account set -s <id>`
 - `az aks install-cli`
 - `az aks get-credentials --name <aks name> --resource-group <resource group name>`
+
+
+Commands:
+- `kubectl create ns <name>`
+- `kubectl apply -f nazwa.yaml`
