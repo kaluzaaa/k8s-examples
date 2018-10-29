@@ -6,7 +6,7 @@ Tools:
 
 Login:
 - `az login --use-device-code`
-- `az account list`
+- `az account list -o table`
 - `az account set -s <id>`
 - `az aks install-cli`
 - `az aks get-credentials --name <aks name> --resource-group <resource group name>`
