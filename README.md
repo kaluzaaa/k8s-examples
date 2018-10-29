@@ -14,4 +14,5 @@ Login:
 
 Commands:
 - `kubectl create ns <name>`
+- `kubectl config set-context --current --namespace <name>`
 - `kubectl apply -f nazwa.yaml`
