@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: kuard-deployment
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
@@ -20,6 +20,8 @@ spec:
           mountPath: /config
         env:
         - name: DEMO_GREETING
+          value: "Hello from the environment"
+        - name: TEST
           value: "Hello from the environment"
         - name: DEMO_FAREWELL
           value: "Such a sweet sorrow"
