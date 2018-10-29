@@ -5,7 +5,7 @@ Tools:
 - [git](https://git-scm.com/downloads)
 
 Login:
-- `az login`
+- `az login --use-device-code`
 - `az account list`
 - `az account set -s <id>`
 - `az aks install-cli`
