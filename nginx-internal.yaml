@@ -23,7 +23,7 @@ kind: Service
 metadata:
   labels:
     app: nginx-deployment
-  name: nginx-external
+  name: nginx-internal
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
