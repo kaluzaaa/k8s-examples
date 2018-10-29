@@ -2,6 +2,7 @@
 Tools:
 - [Vsiual Studio Code](https://code.visualstudio.com/)
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+- [git](https://git-scm.com/downloads)
 
 Login:
 - `az login`
