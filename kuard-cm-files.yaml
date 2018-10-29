@@ -1,0 +1,169 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kuard-deployment
+spec:
+  selector:
+    matchLabels:
+      app: kuard-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kuard-deployment
+    spec:
+      containers:
+      - name: kuard
+        image: gcr.io/kuar-demo/kuard-amd64:1
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+        env:
+        - name: DEMO_GREETING
+          value: "Hello from the environment"
+        - name: DEMO_FAREWELL
+          value: "Such a sweet sorrow"
+        - name: SPECIAL_LEVEL_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: env-setting
+              key: plus
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthy
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+          periodSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: config-volume
+        configMap:
+          name: demo-files
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kuard-deployment
+  name: kuard-external
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: kuard-deployment
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-setting
+data:
+  plus: ms
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-files
+data:
+  app.js: |
+    require('dotenv').config();
+    var express = require('express');
+    var path = require('path');
+    var favicon = require('serve-favicon');
+    var logger = require('morgan');
+    var cookieParser = require('cookie-parser');
+    var bodyParser = require('body-parser');
+    const mongoose = require('mongoose');
+
+    var app = express();
+
+    app.use(function (req, res, next) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+      res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+      next();
+    });
+
+    app.set('views', path.join(__dirname, 'views'));
+    app.set('view engine', 'hbs');
+
+    app.use(logger('dev'));
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use(cookieParser());
+
+    require('./models/mongo/hero');
+    require('./models/mongo/rate');
+    require('./models/mongo/site');
+
+    mongoose.Promise = global.Promise;
+    var connectOptions = { useMongoClient: true, autoIndex: false};
+
+    mongoose.connect(process.env.MONGODB_URI, connectOptions, function(error){
+      if(!error){
+        console.dir('CONNECTED TO ' + process.env.MONGODB_URI);
+      }
+    });
+
+    var mongo = require('./routes/mongo');
+    var index = require('./routes/index');
+
+    app.use('/', index);
+    app.use('/api', mongo);
+
+    app.use(function(req, res, next) {
+      var err = new Error('Not Found');
+      err.status = 404;
+      next(err);
+    });
+
+    app.use(function(err, req, res, next) {
+      res.locals.message = err.message;
+      res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+      // render the error page
+      res.status(err.status || 500);
+      res.render('error');
+    });
+
+    module.exports = app;
+  package.json: |
+    {
+      "name": "rating-api",
+      "version": "1.3.5",
+      "description": "AKS Hackfest Rating api",
+      "author": "Joey Schluchter <jschluchter@gmail.com>",
+      "scripts": {
+        "dev": "NODE_ENV='development' MONGODB_URI='mongodb://localhost:27017/webratings' node ./bin/www",
+        "localmachine": "NODE_ENV='development' MONGODB_URI='mongodb://localhost:27017/webratings' node ./bin/www",
+        "container": "NODE_ENV='development' node ./bin/www"
+      },
+      "dependencies": {
+        "async": "^2.6.0",
+        "body-parser": "~1.18.2",
+        "cookie-parser": "~1.4.3",
+        "debug": "~2.6.9",
+        "dotenv": "^4.0.0",
+        "express": "~4.15.5",
+        "hbs": "~4.0.1",
+        "mongoose": "^4.13.8",
+        "morgan": "~1.9.0",
+        "serve-favicon": "~2.4.5"
+      }
+    }
+
